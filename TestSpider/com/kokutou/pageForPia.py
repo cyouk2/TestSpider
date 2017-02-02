@@ -21,9 +21,16 @@ class Page(object):
         return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
     
     # 通过页面的URL来获取页面的代码
-    def getPageByURL(self, shop, day, lot_no):
+    # model_nm=%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m
+    def getPageByURL(self, shop, day, lot_no, model_nm):
         try:
-            url = "http://p-ken.jp/p-jnaikebukuro/bonus/detail?ps_div=1&cost=4&model_nm=%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m&day=1&lot_no=43&mode="
+            url = "http://p-ken.jp/"
+            url += shop 
+            url += "/bonus/detail?ps_div=1&cost=4&mode="
+            url += ("&day=" + str(day))
+            url += ("&lot_no=" + str(lot_no))
+            url += ("&model_nm=" + str(model_nm))
+            
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
             return response.read().decode("shift-jis", errors='ignore')
@@ -35,52 +42,53 @@ class Page(object):
                 print(self.getCurrentTime(), "getPageByURL...ERRREASON:", e.reason)
                 return None
             
-    def getDataOfOneDay(self, shop, day, lot_no):
+    def getDataOfOneDay(self, shop, day, lot_no, page):
+        
         lista = []
+        index = 0
         pattern = re.compile('<tr><td align="left">(.*?)</td><td align="right">(.*?)</td><td align="right">(.*?)</td></tr>', re.S)
-        # 該当ページのｈｔｍｌ文字列取得する
-        page = self.getPageByURL(shop, day, lot_no)
-        if page:
-            index = 0
-            history = BeautifulSoup(str(page)).find_all(id='history')
-            listTr = BeautifulSoup(str(history)).find_all("tr")
-            rowcounts = len(listTr)
-            try:
-                for strTr in listTr:
-                    match = re.search(pattern, str(strTr))
-                    if match:
-                        my_dict = self.dao.getDicData(shop,
-                                                      self.adddays(-day),
-                                                      lot_no,
-                                                      rowcounts - index,
-                                                      match.group(1),
-                                                      match.group(2),
-                                                      match.group(3))
-                        lista.append(my_dict)
-                    index += 1
-            finally:
-                pass
-            return lista
-        else:
+        history = BeautifulSoup(str(page)).find_all(id='history')
+        listTr = BeautifulSoup(str(history)).find_all("tr")
+        rowcounts = len(listTr)
+        try:
+            for strTr in listTr:
+                match = re.search(pattern, str(strTr))
+                if match:
+                    my_dict = self.dao.getDicData(shop,
+                                                  self.adddays(-day),
+                                                  lot_no,
+                                                  rowcounts - index,
+                                                  match.group(1),
+                                                  match.group(2),
+                                                  match.group(3))
+                    lista.append(my_dict)
+                index += 1
+        finally:
             pass
+        return lista
+
     
     # main function    
-    def getAnswer(self, shop, lot_no):
+    def getAnswer(self, shop, lot_no, model_nm):
+        
         for day in range(0, 8):
-            listOfPiaInfo = self.getDataOfOneDay(shop, day, lot_no)
-            for my_dict in listOfPiaInfo:
-                self.dao.insertData("piainfo", my_dict)
-            lista = self.getPiaInfoTotal(listOfPiaInfo)
-            for my_dict1 in lista:
-                self.dao.insertData("piainfototal", my_dict1)
+            # URL ACCESS
+            page = self.getPageByURL(shop, day, lot_no, model_nm)
+            if page:
+                listOfPiaInfo = self.getDataOfOneDay(shop, day, lot_no, page)
+                for my_dict in listOfPiaInfo:
+                    self.dao.insertData("piainfo", my_dict)
+                lista = self.getPiaInfoTotal(listOfPiaInfo)
+                for my_dict1 in lista:
+                    self.dao.insertData("piainfototal", my_dict1)
         return None
     
     def getPiaInfoTotal(self, listOfPiaInfo):
+        
         lista = []
         bonusCount = 1
         lineIndex = 1
         dica = {"shop":"", "playdate":"", "taino":"", "lineno":"", "ballin":"", "bonus":""}
-
         for el in sorted(listOfPiaInfo, key=lambda x: int(x["lineno"])):
             bonuskind = el["bonuskind"]
             if str(bonuskind) == "確変初当たり" or str(bonuskind) == "通常" or str(bonuskind) == "初当たり":
@@ -103,4 +111,4 @@ class Page(object):
         return lista
     
 page = Page() 
-page.getAnswer("p-jnaikebukuro", 41)
+page.getAnswer("p-jnaikebukuro", 41, "%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m")
