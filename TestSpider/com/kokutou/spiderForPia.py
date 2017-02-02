@@ -14,7 +14,7 @@ class SipderForPia(object):
     
     def getShopInfoByURL(self, areaid, day, lot_no, model_nm):
         try:
-            url = "http://p-ken.jp/store/?area=" + areaid  
+            url = "http://p-ken.jp/store/area/?area=" + areaid  
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
             return response.read().decode("shift-jis", errors='ignore')
