@@ -30,7 +30,7 @@ class Page(object):
             url += ("&day=" + str(day))
             url += ("&lot_no=" + str(lot_no))
             url += ("&model_nm=" + str(model_nm))
-            
+            print(url)
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
             return response.read().decode("shift-jis", errors='ignore')
@@ -66,8 +66,6 @@ class Page(object):
         finally:
             pass
         return lista
-
-    
     # main function    
     def getAnswer(self, shop, lot_no, model_nm):
         
@@ -91,7 +89,7 @@ class Page(object):
         dica = {"shop":"", "playdate":"", "taino":"", "lineno":"", "ballin":"", "bonus":""}
         for el in sorted(listOfPiaInfo, key=lambda x: int(x["lineno"])):
             bonuskind = el["bonuskind"]
-            if str(bonuskind).find("初当たり") > -1 or str(bonuskind).find("通常") > -1 :
+            if str(bonuskind).find("当たり") > -1 or str(bonuskind).find("通常") > -1 :
                 shop = dica["shop"]
                 if shop:
                     lista.append(dica)
@@ -111,4 +109,5 @@ class Page(object):
         return lista
     
 page = Page() 
-page.getAnswer("p-jnaikebukuro", 41, "%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m")
+for i in list(range(41,52)):
+    page.getAnswer("p-jnaikebukuro", i, "%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m")

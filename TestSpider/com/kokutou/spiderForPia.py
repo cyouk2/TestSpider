@@ -12,7 +12,7 @@ class SipderForPia(object):
     def getCurrentTime(self):
         return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
     
-    def getShopInfoByURL(self, areaid, day, lot_no, model_nm):
+    def getShopInfoByURL(self, areaid):
         try:
             url = "http://p-ken.jp/store/area/?area=" + areaid  
             request = urllib.request.Request(url)
@@ -25,3 +25,4 @@ class SipderForPia(object):
             if hasattr(e, "reason"):
                 print(self.getCurrentTime(), "GetShopInfoByURL...ERRREASON:", e.reason)
                 return None
+    
