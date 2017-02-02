@@ -87,7 +87,6 @@ class Page(object):
                 shop = dica["shop"]
                 if shop:
                     lista.append(dica)
-                    self.dao.insertData("piainfototal", dica)
                     bonusCount = 1
                     lineIndex += 1
                     dica = {"shop":"", "playdate":"", "taino":"", "lineno":"", "ballin":"", "bonus":""}
