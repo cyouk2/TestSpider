@@ -1,11 +1,9 @@
 # -*- coding:utf-8 -*-
-
 import urllib.request
 import re
 import time
 import mysqlForSpider
-from datetime import datetime,timedelta
-
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 class Page(object):
@@ -28,9 +26,7 @@ class Page(object):
             url = "http://p-ken.jp/p-jnaikebukuro/bonus/detail?ps_div=1&cost=4&model_nm=%82b%82q%90%5E%96k%93l%96%B3%91o%82e%82v%82m&day=1&lot_no=43&mode="
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
-            return response.read().decode("shift-jis",errors='ignore')
-#             with open("new.html", mode='r', encoding="utf-8") as f:
-#                 return f.read()
+            return response.read().decode("shift-jis", errors='ignore')
         except urllib.request.URLError as e:
             if hasattr(e, "code"):
                 print(self.getCurrentTime(), "getPageByURL...ERRCODE:", e.code)
@@ -40,22 +36,27 @@ class Page(object):
                 return None
             
     def getDataOfOneDay(self, shop, day, lot_no):
-        lista =[]
-        pattern = re.compile('<tr><td align="left">(.*?)</td><td align="right">(.*?)</td><td align="right">(.*?)</td></tr>',re.S)
+        lista = []
+        pattern = re.compile('<tr><td align="left">(.*?)</td><td align="right">(.*?)</td><td align="right">(.*?)</td></tr>', re.S)
         # 該当ページのｈｔｍｌ文字列取得する
         page = self.getPageByURL(shop, day, lot_no)
         if page:
+            index = 0
             history = BeautifulSoup(str(page)).find_all(id='history')
             listTr = BeautifulSoup(str(history)).find_all("tr")
             rowcounts = len(listTr)
-            index = 0
             try:
                 for strTr in listTr:
                     match = re.search(pattern, str(strTr))
                     if match:
-                        my_dict = self.dao.getDicData(shop, self.adddays(-day), lot_no, rowcounts - index, match.group(1), match.group(2), match.group(3))
+                        my_dict = self.dao.getDicData(shop,
+                                                      self.adddays(-day),
+                                                      lot_no,
+                                                      rowcounts - index,
+                                                      match.group(1),
+                                                      match.group(2),
+                                                      match.group(3))
                         lista.append(my_dict)
-                        
                     index += 1
             finally:
                 pass
@@ -65,12 +66,13 @@ class Page(object):
     
     # main function    
     def getAnswer(self, shop, lot_no):
-
-        for day in range(0,8):
+        for day in range(0, 8):
             listOfPiaInfo = self.getDataOfOneDay(shop, day, lot_no)
             for my_dict in listOfPiaInfo:
                 self.dao.insertData("piainfo", my_dict)
-            self.getPiaInfoTotal(listOfPiaInfo)
+            lista = self.getPiaInfoTotal(listOfPiaInfo)
+            for my_dict1 in lista:
+                self.dao.insertData("piainfototal", my_dict1)
         return None
     
     def getPiaInfoTotal(self, listOfPiaInfo):
@@ -99,7 +101,6 @@ class Page(object):
                 bonusCount += 1
                 dica["bonus"] = str(bonusCount)
         lista.append(dica)
-        self.dao.insertData("piainfototal", dica)
         return lista
     
 page = Page() 
