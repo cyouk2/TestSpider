@@ -11,12 +11,12 @@ class Page(object):
     def __init__(self):
         self.dao = mysqlForSpider.Mysql()
         
-    # 時間計算
+    # time add
     def adddays(self, day):
         now = datetime.now()
         return (now + timedelta(days=day)).strftime('%Y%m%d')
 
-    # 获取当前时间
+    # getCurrentTime
     def getCurrentTime(self):
         return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
     
@@ -91,7 +91,7 @@ class Page(object):
         dica = {"shop":"", "playdate":"", "taino":"", "lineno":"", "ballin":"", "bonus":""}
         for el in sorted(listOfPiaInfo, key=lambda x: int(x["lineno"])):
             bonuskind = el["bonuskind"]
-            if str(bonuskind) == "確変初当たり" or str(bonuskind) == "通常" or str(bonuskind) == "初当たり":
+            if str(bonuskind).find("初当たり") > -1 or str(bonuskind).find("通常") > -1 :
                 shop = dica["shop"]
                 if shop:
                     lista.append(dica)
