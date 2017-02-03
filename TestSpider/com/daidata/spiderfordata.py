@@ -29,7 +29,10 @@ class SpiderFotData(object):
             
     def getShopInfoByURL(self, areaid, pageid):
         url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
-        return self.requestPage(url)
+        print(url)
+        page = self.requestPage(url)
+        self.getShopIdList(page)
+        return page
 #          
     def getShopIdList(self, page):
         shopidlist =[]
@@ -53,8 +56,8 @@ class SpiderFotData(object):
             print(tainoList)
             self.getTaiList(tainoList)
         
-    def getTaiList(self, list):
-        for tailist in list:
+    def getTaiList(self, lists):
+        for tailist in lists:
             url = "http://daidata.goraggio.com" + tailist
             pageOfTaiList = self.requestPage(url)
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
