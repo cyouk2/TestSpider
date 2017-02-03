@@ -49,21 +49,23 @@ class SpiderFotData(object):
             history = BeautifulSoup(str(page)).find_all(href=re.compile("%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C.*?FWN"))
             for tailist in history:
                 tainoList.append(BeautifulSoup(str(tailist)).a['href'])
-            self.getTaiList(tainoList)
+            self.getTaiList(shopid, tainoList)
         
-    def getTaiList(self, lists):
+    def getTaiList(self,shopid,lists):
         for tailist in lists:
             url = "http://daidata.goraggio.com" + tailist
             pageOfTaiList = self.requestPage(url)
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
-            for i in history:
-                print(self.getCurrentTime(),"getTaiList:",BeautifulSoup(str(i)).text)
+            for tainoi in history:
+                taino = BeautifulSoup(str(tainoi)).text
+                url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino)
+                print(self.getCurrentTime(),"getTaiList:",url)
           
     
 #機種別で探す
 #             with open("44.html", mode='r', encoding="utf-8", errors='ignore') as f:
 #                 return f.read()
-#http://daidata.goraggio.com/100196/list/?type=2&f=1
+#http://daidata.goraggio.com/100196/detail/?unit=90
 # %E6%9D%B1%E4%BA%AC%E9%83%BD 東京都
 p = SpiderFotData()
 page  = p.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD",1)
