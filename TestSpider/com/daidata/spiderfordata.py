@@ -14,8 +14,6 @@ class SpiderFotData(object):
     # requestPage
     def requestPage(self,url):
         try:
-#             北斗無双
-#             mode ="%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C"
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
             return response.read().decode("shift-jis", errors='ignore')
@@ -29,11 +27,9 @@ class SpiderFotData(object):
             
     def getShopInfoByURL(self, areaid, pageid):
         url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
-        print(url)
         page = self.requestPage(url)
         self.getShopIdList(page)
-        return page
-#          
+        
     def getShopIdList(self, page):
         shopidlist =[]
         if page:
@@ -43,17 +39,16 @@ class SpiderFotData(object):
                 shopinfoStr = BeautifulSoup(str(shopinfo)).a['href']
                 shopidlist.append(shopinfoStr[1:])
                 self.getUnitList(shopinfoStr[1:])
-                print(shopinfoStr[1:])
 
     def getUnitList(self, shopid):
         tainoList = [] 
         url = "http://daidata.goraggio.com/"+ str(shopid) +"/list/?type=2&f=1"
+        print(self.getCurrentTime(), shopid,"getUnitList:",url)
         page = self.requestPage(url)  
         if page:
             history = BeautifulSoup(str(page)).find_all(href=re.compile("%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C.*?FWN"))
             for tailist in history:
                 tainoList.append(BeautifulSoup(str(tailist)).a['href'])
-            print(tainoList)
             self.getTaiList(tainoList)
         
     def getTaiList(self, lists):
@@ -62,7 +57,7 @@ class SpiderFotData(object):
             pageOfTaiList = self.requestPage(url)
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for i in history:
-                print(BeautifulSoup(str(i)).text)
+                print(self.getCurrentTime(),"getTaiList:",BeautifulSoup(str(i)).text)
           
     
 #機種別で探す
