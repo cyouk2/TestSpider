@@ -1,5 +1,4 @@
 eclipse.preferences.version=1
-encoding//com/kokutou/2.html=UTF-8
-encoding//com/kokutou/mysqlForSpider.py=utf-8
-encoding//com/kokutou/pageForPia.py=utf-8
+encoding//com/daidata/mysqlfordata.py=utf-8
+encoding//com/daidata/pagefordata.py=utf-8
 encoding/<project>=UTF-8
