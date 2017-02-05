@@ -22,7 +22,7 @@ class Page(object):
         listb = []
         # 累計スタート
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
-        print(overviewTable[0])
+#         print(overviewTable[0])
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
 #         累計スタート
         print(tdOfoverviewTable[1])
@@ -61,5 +61,5 @@ class Page(object):
             "ballout":str(lstas[2])}
         return mydic
 pagea = Page()
-with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
-    pagea.getDataOfOneDay(3, 2, 1, f.read()) 
+# with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
+#     pagea.getDataOfOneDay(3, 2, 1, f.read()) 
