@@ -22,12 +22,14 @@ class Page(object):
         listb = []
         # 累計スタート
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
-#         print(overviewTable[0])
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
-#         累計スタート
-        print(tdOfoverviewTable[1])
-#         前日最終スタート
-        print(tdOfoverviewTable[3])
+        # 累計スタート
+        print("累計スタート:", BeautifulSoup(str(tdOfoverviewTable[1])).text)
+        # 前日最終スタート
+        print("前日最終スタート:", BeautifulSoup(str(tdOfoverviewTable[3])).text)
+        lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
+        if not lastStartNum:
+            lastStartNum = str(0)
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
@@ -44,12 +46,44 @@ class Page(object):
                         lista.append(txt)
                 index -= 1
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
-#                 self.dao.insertData("piainfo", my_dict)
-                listb.append(my_dict)
-                    
-        return listb
-    
-    def getDicData(self,  shopid, taino, target_date, lstas):
+                self.dao.insertData("piainfo", my_dict)
+                listb.append(my_dict)  
+        self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
+        
+    def getPiaDataInfoTotal(self, shopid, taino, target_date, listb, lastStartNum):
+        
+        listd = []
+        # ボーナス計数
+        bonuscount = 0
+        # ラインNo
+        lineno = 0
+        # ループ
+        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+        for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
+            bonuscount += 1
+            if str(dataLine["bonuskind"]) == "通常":
+                lineno += 1
+                if not index == 0:
+                    # 行を追加
+                    listd.append(dicForDataLine)
+                    bonuscount = 1
+                    dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+            dicForDataLine.update({"ballin": dataLine["ballin"]})
+            dicForDataLine.update({"bonus": str(bonuscount)})
+            dicForDataLine.update({"lineno": str(lineno)})
+        # 最後に行を追加
+        dicForDataLine.update({"bonus": str(bonuscount)})
+        dicForDataLine.update({"lineno": str(lineno)})
+        listd.append(dicForDataLine)
+        
+        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+        dicForDataLine.update({"ballin": lastStartNum})
+        dicForDataLine.update({"bonus": str(0)})
+        dicForDataLine.update({"lineno": str(0)})
+        for totalLineInfo in listd:
+            self.dao.insertData("piainfototal", totalLineInfo)        
+        
+    def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
             "shop" : str(shopid),
             "taino" : str(taino),
@@ -60,6 +94,3 @@ class Page(object):
             "bonuskind":str(lstas[3]),
             "ballout":str(lstas[2])}
         return mydic
-pagea = Page()
-# with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
-#     pagea.getDataOfOneDay(3, 2, 1, f.read()) 

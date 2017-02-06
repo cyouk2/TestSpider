@@ -19,7 +19,7 @@ class SpiderFotData(object):
         return (now + timedelta(days=day)).strftime('%Y-%m-%d')
     
     # requestPage
-    def requestPage(self,url):
+    def requestPage(self, url):
         try:
             request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
@@ -33,7 +33,7 @@ class SpiderFotData(object):
                 return None
             
     def getShopIdList(self, page):
-        shopidlist =[]
+        shopidlist = []
         if page:
             history = BeautifulSoup(str(page)).find(id='sorter')
             shoplist = BeautifulSoup(str(history)).select("td > a")
@@ -44,7 +44,7 @@ class SpiderFotData(object):
 
     def getUnitList(self, shopid):
         tainoList = [] 
-        url = "http://daidata.goraggio.com/"+ str(shopid) +"/list/?type=2&f=1"
+        url = "http://daidata.goraggio.com/" + str(shopid) + "/list/?type=2&f=1"
 #         print(self.getCurrentTime(),"getUnitList:",url)
         page = self.requestPage(url)  
         if page:
@@ -53,26 +53,25 @@ class SpiderFotData(object):
                 tainoList.append(BeautifulSoup(str(tailist)).a['href'])
             self.getTaiList(shopid, tainoList)
         
-    def getTaiList(self,shopid,lists):
+    def getTaiList(self, shopid, lists):
         for tailist in lists:
             url = "http://daidata.goraggio.com" + tailist
             pageOfTaiList = self.requestPage(url)
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for tainoi in history:
                 taino = BeautifulSoup(str(tainoi)).text
-                for day in list(range(-1,1)):
+                for day in list(range(-1, 1)):
                     target_date = self.adddays(day)
                     url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
-                    print(self.getCurrentTime(),"getTaiList:", url)
+                    print(self.getCurrentTime(), "getTaiList:", url)
                     self.page.getDataOfOneDay(shopid, taino, target_date, self.requestPage(url))
     
-
+    # main
     def getShopInfoByURL(self, areaid, pageid):
         url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
         page = self.requestPage(url)
         self.getShopIdList(page)
         
-p = SpiderFotData()
-for i in [2,3,1]:
-    page  = p.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD",i)
-# p.getTaiList([])
+objSpiderFotData = SpiderFotData()
+for i in [1, 2, 3]:
+    page = objSpiderFotData.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD", i)
