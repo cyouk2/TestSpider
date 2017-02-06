@@ -46,7 +46,7 @@ class Page(object):
                         lista.append(txt)
                 index -= 1
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
-#                 self.dao.insertData("piainfo", my_dict)
+                self.dao.insertData("piainfo", my_dict)
                 listb.append(my_dict)  
         self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
         

@@ -60,7 +60,7 @@ class SpiderFotData(object):
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for tainoi in history:
                 taino = BeautifulSoup(str(tainoi)).text
-                for day in list(range(-1, 1)):
+                for day in list(range(-7, 1)):
                     target_date = self.adddays(day)
                     url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
                     print(self.getCurrentTime(), "getTaiList:", url)
@@ -75,3 +75,8 @@ class SpiderFotData(object):
 objSpiderFotData = SpiderFotData()
 for i in [1, 2, 3]:
     page = objSpiderFotData.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD", i)
+
+page = objSpiderFotData.getShopInfoByURL("%E5%8D%83%E8%91%89%E7%9C%8C", 1)
+for i in [1, 2]:
+    page = objSpiderFotData.getShopInfoByURL("%E5%9F%BC%E7%8E%89%E7%9C%8C", i)
+
