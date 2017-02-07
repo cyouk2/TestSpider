@@ -67,9 +67,14 @@ class Page(object):
         big16r = 0
         middle8r = 0
         small4r = 0
+        # 該当ラインのスータトのtotal
+        startTotal = 0
         # ループ
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
         for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
+            # 回転数計数
+            ballin = int(dataLine["ballin"])
+            startTotal += ballin
             # R数チェック
             ballout = int(dataLine["ballout"])
             if ballout > 1800 :
@@ -88,6 +93,8 @@ class Page(object):
                 if not index == 0:
                     # 行を追加
                     listd.append(dicForDataLine)
+                    startTotal = ballin
+                    # ボーナス数初期化
                     bonuscount = 1
                     # R数チェック
                     big16r = 0
@@ -101,12 +108,14 @@ class Page(object):
                         middle8r = 1
                     dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
                 dicForDataLine.update({"ballin": dataLine["ballin"]})
+            dicForDataLine.update({"starttotal": str(startTotal)})
             dicForDataLine.update({"bonus": str(bonuscount)})
             dicForDataLine.update({"big16r": str(big16r)})
             dicForDataLine.update({"middle8r": str(middle8r)})
             dicForDataLine.update({"small4r": str(small4r)})
             dicForDataLine.update({"lineno": str(lineno)})
         # 最後に行を追加
+        dicForDataLine.update({"starttotal": str(startTotal)})
         dicForDataLine.update({"bonus": str(bonuscount)})
         dicForDataLine.update({"big16r": str(big16r)})
         dicForDataLine.update({"middle8r": str(middle8r)})
@@ -115,7 +124,8 @@ class Page(object):
         listd.append(dicForDataLine)
         
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-        dicForDataLine.update({"ballin": lastStartNum})
+        dicForDataLine.update({"ballin": str(lastStartNum)})
+        dicForDataLine.update({"starttotal": str(lastStartNum)})
         dicForDataLine.update({"bonus": str(0)})
         dicForDataLine.update({"lineno": str(0)})
         dicForDataLine.update({"big16r": str(0)})
