@@ -52,7 +52,7 @@ class Page(object):
                         lista.append(txt)
                 index -= 1
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
-#                 self.dao.insertData("piainfo", my_dict)
+                self.dao.insertData("piainfo", my_dict)
                 listb.append(my_dict)
         # 集計関数へ渡す
         self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
@@ -123,8 +123,7 @@ class Page(object):
         dicForDataLine.update({"small4r": str(0)})
         listd.append(dicForDataLine)
         for totalLineInfo in listd:
-            print(totalLineInfo)
-#             self.dao.insertData("piainfototal", totalLineInfo)        
+            self.dao.insertData("piainfototal", totalLineInfo)        
         
     def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
@@ -138,6 +137,6 @@ class Page(object):
             "ballout":str(lstas[2])}
         return mydic
 
-pagea = Page()
-with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
-    pagea.getDataOfOneDay(3, 2, 1, f.read()) 
+# pagea = Page()
+# with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
+#     pagea.getDataOfOneDay(3, 2, 1, f.read()) 
