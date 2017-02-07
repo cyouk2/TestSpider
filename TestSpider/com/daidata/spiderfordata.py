@@ -18,7 +18,7 @@ class SpiderFotData(object):
         now = datetime.now()
         return (now + timedelta(days=day)).strftime('%Y-%m-%d')
     
-    # requestPage
+    # Internet アクセス共通関数
     def requestPage(self, url):
         try:
             request = urllib.request.Request(url)
@@ -31,7 +31,8 @@ class SpiderFotData(object):
             if hasattr(e, "reason"):
                 print(self.getCurrentTime(), "GetShopInfoByURL...ERRREASON:", e.reason)
                 return None
-            
+    
+    #アリア別で店舗情報リスト取得      
     def getShopIdList(self, page):
         shopidlist = []
         if page:
@@ -41,7 +42,8 @@ class SpiderFotData(object):
                 shopinfoStr = BeautifulSoup(str(shopinfo)).a['href']
                 shopidlist.append(shopinfoStr[1:])
                 self.getUnitList(shopinfoStr[1:])
-
+    
+    #店舗別で機種情報リスト取得
     def getUnitList(self, shopid):
         tainoList = [] 
         url = "http://daidata.goraggio.com/" + str(shopid) + "/list/?type=2&f=1"
@@ -52,7 +54,8 @@ class SpiderFotData(object):
             for tailist in history:
                 tainoList.append(BeautifulSoup(str(tailist)).a['href'])
             self.getTaiList(shopid, tainoList)
-        
+            
+    #機種別で台情報リスト取得
     def getTaiList(self, shopid, lists):
         for tailist in lists:
             url = "http://daidata.goraggio.com" + tailist
@@ -60,8 +63,10 @@ class SpiderFotData(object):
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for tainoi in history:
                 taino = BeautifulSoup(str(tainoi)).text
-                for day in list(range(-7, 1)):
+                for day in list(range(-7, 0)):
+                    # 日付取得
                     target_date = self.adddays(day)
+                    # 大当たり履歴詳細
                     url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
                     print(self.getCurrentTime(), "getTaiList:", url)
                     self.page.getDataOfOneDay(shopid, taino, target_date, self.requestPage(url))
