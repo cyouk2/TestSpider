@@ -28,7 +28,7 @@ class Page(object):
 #         # 前日最終スタート
 #         print("前日最終スタート:", BeautifulSoup(str(tdOfoverviewTable[3])).text)
         #前日最終スタート
-        lastStartNum = 0
+        lastStartNum = str(0)
         if len(tdOfoverviewTable) > 3:
             lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
             if not lastStartNum:
