@@ -23,21 +23,24 @@ class Page(object):
         # 累計スタート
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
-        # 累計スタート
-#         print("累計スタート:", BeautifulSoup(str(tdOfoverviewTable[1])).text)
-#         # 前日最終スタート
-#         print("前日最終スタート:", BeautifulSoup(str(tdOfoverviewTable[3])).text)
-        #前日最終スタート
+        # 前日最終スタート
         lastStartNum = str(0)
+        # 累計スタート
+        nowStartNumtotal = str(0)
         if len(tdOfoverviewTable) > 3:
             lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
+            nowStartNumtotal = BeautifulSoup(str(tdOfoverviewTable[1])).text
             if not lastStartNum:
                 lastStartNum = str(0)
+            if not nowStartNumtotal:
+                nowStartNumtotal = str(0)
+            print("前日最終スタート:", lastStartNum, ";累計スタート:", nowStartNumtotal)
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
         if len(listTr) > 1:
             index = len(listTr) - 1
+            # タイトルを除く >> listTr[1:]
             for trstr in listTr[1:]:
                 lista = []
                 listTr = BeautifulSoup(str(trstr)).find_all("td")
@@ -50,7 +53,8 @@ class Page(object):
                 index -= 1
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
                 self.dao.insertData("piainfo", my_dict)
-                listb.append(my_dict)  
+                listb.append(my_dict)
+        # 集計関数へ渡す
         self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
         
     def getPiaDataInfoTotal(self, shopid, taino, target_date, listb, lastStartNum):
