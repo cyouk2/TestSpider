@@ -24,12 +24,14 @@ class Page(object):
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
         # 累計スタート
-        print("累計スタート:", BeautifulSoup(str(tdOfoverviewTable[1])).text)
-        # 前日最終スタート
-        print("前日最終スタート:", BeautifulSoup(str(tdOfoverviewTable[3])).text)
-        lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
-        if not lastStartNum:
-            lastStartNum = str(0)
+#         print("累計スタート:", BeautifulSoup(str(tdOfoverviewTable[1])).text)
+#         # 前日最終スタート
+#         print("前日最終スタート:", BeautifulSoup(str(tdOfoverviewTable[3])).text)
+#         
+        if len(tdOfoverviewTable) > 3:
+            lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
+            if not lastStartNum:
+                lastStartNum = str(0)
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
