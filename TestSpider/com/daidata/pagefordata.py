@@ -52,7 +52,7 @@ class Page(object):
                         lista.append(txt)
                 index -= 1
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
-                self.dao.insertData("piainfo", my_dict)
+#                 self.dao.insertData("piainfo", my_dict)
                 listb.append(my_dict)
         # 集計関数へ渡す
         self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
@@ -64,22 +64,53 @@ class Page(object):
         bonuscount = 0
         # ラインNo
         lineno = 0
+        big16r = 0
+        middle8r = 0
+        small4r = 0
         # ループ
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
         for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
+            # R数チェック
+            ballout = int(dataLine["ballout"])
+            if ballout > 1800 :
+                big16r += 1
+            elif ballout < 950:
+                small4r += 1
+            else:
+                middle8r += 1
+            # ライン毎にボーナス計数
             bonuscount += 1
+            # 通常また確変判定する
             if str(dataLine["bonuskind"]) == "通常":
+                # ライン計数
                 lineno += 1
+                # 初当たりじゃない場合
                 if not index == 0:
                     # 行を追加
                     listd.append(dicForDataLine)
                     bonuscount = 1
+                    # R数チェック
+                    big16r = 0
+                    middle8r = 0
+                    small4r = 0
+                    if ballout > 1800:
+                        big16r = 1
+                    elif ballout < 950:
+                        small4r = 1
+                    else:
+                        middle8r = 1
                     dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
                 dicForDataLine.update({"ballin": dataLine["ballin"]})
             dicForDataLine.update({"bonus": str(bonuscount)})
+            dicForDataLine.update({"big16r": str(big16r)})
+            dicForDataLine.update({"middle8r": str(middle8r)})
+            dicForDataLine.update({"small4r": str(small4r)})
             dicForDataLine.update({"lineno": str(lineno)})
         # 最後に行を追加
         dicForDataLine.update({"bonus": str(bonuscount)})
+        dicForDataLine.update({"big16r": str(big16r)})
+        dicForDataLine.update({"middle8r": str(middle8r)})
+        dicForDataLine.update({"small4r": str(small4r)})
         dicForDataLine.update({"lineno": str(lineno)})
         listd.append(dicForDataLine)
         
@@ -87,9 +118,13 @@ class Page(object):
         dicForDataLine.update({"ballin": lastStartNum})
         dicForDataLine.update({"bonus": str(0)})
         dicForDataLine.update({"lineno": str(0)})
+        dicForDataLine.update({"big16r": str(0)})
+        dicForDataLine.update({"middle8r": str(0)})
+        dicForDataLine.update({"small4r": str(0)})
         listd.append(dicForDataLine)
         for totalLineInfo in listd:
-            self.dao.insertData("piainfototal", totalLineInfo)        
+            print(totalLineInfo)
+#             self.dao.insertData("piainfototal", totalLineInfo)        
         
     def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
@@ -102,3 +137,7 @@ class Page(object):
             "bonuskind":str(lstas[3]),
             "ballout":str(lstas[2])}
         return mydic
+
+pagea = Page()
+with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
+    pagea.getDataOfOneDay(3, 2, 1, f.read()) 
