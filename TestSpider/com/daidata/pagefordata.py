@@ -71,7 +71,7 @@ class Page(object):
                     listd.append(dicForDataLine)
                     bonuscount = 1
                     dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-            dicForDataLine.update({"ballin": dataLine["ballin"]})
+                dicForDataLine.update({"ballin": dataLine["ballin"]})
             dicForDataLine.update({"bonus": str(bonuscount)})
             dicForDataLine.update({"lineno": str(lineno)})
         # 最後に行を追加
@@ -83,6 +83,7 @@ class Page(object):
         dicForDataLine.update({"ballin": lastStartNum})
         dicForDataLine.update({"bonus": str(0)})
         dicForDataLine.update({"lineno": str(0)})
+        listd.append(dicForDataLine)
         for totalLineInfo in listd:
             self.dao.insertData("piainfototal", totalLineInfo)        
         
