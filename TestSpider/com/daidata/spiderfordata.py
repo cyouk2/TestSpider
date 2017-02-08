@@ -1,5 +1,6 @@
 import urllib.request
 import re
+import os
 import time
 import pagefordata
 from datetime import datetime, timedelta
@@ -76,12 +77,25 @@ class SpiderFotData(object):
         url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
         page = self.requestPage(url)
         self.getShopIdList(page)
-        
-objSpiderFotData = SpiderFotData()
-for i in [1, 2, 3]:
-    page = objSpiderFotData.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD", i)
 
-page = objSpiderFotData.getShopInfoByURL("%E5%8D%83%E8%91%89%E7%9C%8C", 1)
-for i in [1, 2]:
-    page = objSpiderFotData.getShopInfoByURL("%E5%9F%BC%E7%8E%89%E7%9C%8C", i)
+if __name__ == "__main__":
+    objSpiderFotData = SpiderFotData()
+    shopInfos = []
+    filename = "area.txt"
+    if os.path.exists(filename):
+        f = open(filename, mode='r', encoding="utf-8", errors='ignore')
+        for row in f:
+            lista = row.rstrip().lstrip().split(",")
+            areaName = lista[0]
+            for pageid in lista[1:]:
+                objSpiderFotData.getShopInfoByURL(urllib.parse.urlencode(areaName),pageid)
+        f.close()
+
+
+#         for i in [1, 2, 3]:
+#             page = objSpiderFotData.getShopInfoByURL("%E6%9D%B1%E4%BA%AC%E9%83%BD", i)
+#         
+#         page = objSpiderFotData.getShopInfoByURL("%E5%8D%83%E8%91%89%E7%9C%8C", 1)
+#         for i in [1, 2]:
+#             page = objSpiderFotData.getShopInfoByURL("%E5%9F%BC%E7%8E%89%E7%9C%8C", i)
 
