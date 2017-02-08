@@ -22,7 +22,7 @@ class SpiderFotData(object):
     # Internet アクセス共通関数
     def requestPage(self, url):
         try:
-            request = urllib.request.Request(urllib.parse.urlencode(url))
+            request = urllib.request.Request(url)
             response = urllib.request.urlopen(request)
             return response.read().decode("utf-8", errors='ignore')
         except urllib.request.URLError as e:
