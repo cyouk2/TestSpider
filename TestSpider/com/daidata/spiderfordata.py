@@ -22,7 +22,7 @@ class SpiderFotData(object):
     # Internet アクセス共通関数
     def requestPage(self, url):
         try:
-            request = urllib.request.Request(url)
+            request = urllib.request.Request(urllib.parse.urlencode(url))
             response = urllib.request.urlopen(request)
             return response.read().decode("utf-8", errors='ignore')
         except urllib.request.URLError as e:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
             lista = row.rstrip().lstrip().split(",")
             areaName = lista[0]
             for pageid in lista[1:]:
-                objSpiderFotData.getShopInfoByURL(urllib.parse.urlencode(areaName),pageid)
+                objSpiderFotData.getShopInfoByURL(areaName,pageid)
         f.close()
 
 
