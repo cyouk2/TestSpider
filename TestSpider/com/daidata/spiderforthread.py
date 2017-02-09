@@ -79,7 +79,7 @@ class CrawlerScheduler(object):
     def scheduling(self):
         
         # 创建工作线程
-        for x in range(20):
+        for x in range(50):
             worker = DownloadWorker(self.queue)
             #设置daemon属性，保证主线程在任何情况下可以退出
             worker.daemon = True
