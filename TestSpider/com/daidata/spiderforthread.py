@@ -1,10 +1,8 @@
 
 import os
-import sys
 import queue as Queue
 from threading import Thread
 import re
-import json
 import time
 import pagefordata
 import urllib.request
@@ -56,6 +54,9 @@ class CrawlerScheduler(object):
         self.sites = sites
         self.queue = Queue.Queue()
         self.scheduling()
+    def adddays(self, day):
+        now = datetime.now()
+        return (now + timedelta(days=day)).strftime('%Y-%m-%d')
         
     # Internet アクセス共通関数
     def requestPage(self, url):
