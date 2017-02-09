@@ -79,7 +79,7 @@ class Page(object):
             ballout = int(dataLine["ballout"])
             if ballout > 1800 :
                 big16r += 1
-            elif ballout < 950:
+            elif ballout < 800:
                 small4r += 1
             else:
                 middle8r += 1
@@ -102,7 +102,7 @@ class Page(object):
                     small4r = 0
                     if ballout > 1800:
                         big16r = 1
-                    elif ballout < 950:
+                    elif ballout < 800:
                         small4r = 1
                     else:
                         middle8r = 1
