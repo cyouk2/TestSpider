@@ -30,10 +30,10 @@ class Mysql(object):
         try:
             self.cur.execute(sql)
             self.db.commit()
-            print(self.getCurrentTime(), "Database commit....SQL:", sql)
+#             print(self.getCurrentTime(), "Database commit....SQL:", sql)
         except mysql.connector.Error as err:
             self.db.rollback()
-            print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
+#             print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
         except Exception as err:
             print(self.getCurrentTime(), "ERR:", err)
             

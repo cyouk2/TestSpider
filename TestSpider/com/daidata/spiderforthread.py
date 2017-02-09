@@ -106,7 +106,7 @@ class CrawlerScheduler(object):
     def getUnitList(self, shopid):
         tainoList = [] 
         url = "http://daidata.goraggio.com/" + str(shopid) + "/list/?type=2&f=1"
-#         print(self.getCurrentTime(),"getUnitList:",url)
+        print(self.getCurrentTime(),"getUnitList:",url)
         page = self.requestPage(url)  
         if page:
             history = BeautifulSoup(str(page)).find_all(href=re.compile("%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C.*?FWN"))
@@ -118,6 +118,7 @@ class CrawlerScheduler(object):
     def getTaiList(self, shopid, lists):
         for tailist in lists:
             url = "http://daidata.goraggio.com" + tailist
+            print(self.getCurrentTime(),"getTaiList:",url)
             pageOfTaiList = self.requestPage(url)
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for tainoi in history:
