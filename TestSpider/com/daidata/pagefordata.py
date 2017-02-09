@@ -68,7 +68,7 @@ class Page(object):
         middle8r = 0
         small4r = 0
         # 該当ラインのスータトのtotal
-        startTotal = 0
+        startTotal = lastStartNum
         # ループ
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
         for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
@@ -93,7 +93,7 @@ class Page(object):
                 if not index == 0:
                     # 行を追加
                     listd.append(dicForDataLine)
-                    startTotal = ballin
+#                     startTotal = ballin
                     # ボーナス数初期化
                     bonuscount = 1
                     # R数チェック
