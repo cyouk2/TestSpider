@@ -69,7 +69,7 @@ class Page(object):
         small4r = 0
         normal = True
         # 該当ラインのスータトのtotal
-        startTotal = lastStartNum
+        startTotal = int(lastStartNum)
         # ループ
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
         for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
@@ -86,10 +86,18 @@ class Page(object):
                 middle8r += 1
             # ライン毎にボーナス計数
             bonuscount += 1
-            normal = True
+
             # 通常また確変判定する
             if str(dataLine["bonuskind"]) == "通常":
-
+                if not index == 0:
+                    if normal:
+                        startTotal += (ballin + 100)
+                        dicForDataLine.update({"ballin": str(ballin + 100)})
+                    else:
+                        startTotal += (ballin + 130)
+                        dicForDataLine.update({"ballin": str(ballin + 130)})
+                
+                normal = True
                 # ライン計数
                 lineno += 1
                 # 初当たりじゃない場合
@@ -110,13 +118,7 @@ class Page(object):
                     else:
                         middle8r = 1
                     dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-                if not index == 0:
-                    if normal:
-                        startTotal += (ballin + 100)
-                        dicForDataLine.update({"ballin": str(ballin + 100)})
-                    else:
-                        startTotal += (ballin + 130)
-                        dicForDataLine.update({"ballin": str(ballin + 130)})
+                
                 else:
                     dicForDataLine.update({"ballin": str(ballin)})   
             else:
