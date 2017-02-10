@@ -3,6 +3,7 @@ import time
 import mysqlfordata
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+import copy
 
 class Page(object):
     
@@ -20,25 +21,22 @@ class Page(object):
     
     def getDataOfOneDay(self, shopid, taino, target_date, page):
         listb = []
-        # 累計スタート
+        # 累計スタートの履歴
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
         # 前日最終スタート
         lastStartNum = str(0)
-        # 累計スタート
-        nowStartNumtotal = str(0)
+        # 存在チェック
         if len(tdOfoverviewTable) > 3:
             lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
-            nowStartNumtotal = BeautifulSoup(str(tdOfoverviewTable[1])).text
             if not lastStartNum:
                 lastStartNum = str(0)
-            if not nowStartNumtotal:
-                nowStartNumtotal = str(0)
-            print("前日最終スタート:", lastStartNum, ";累計スタート:", nowStartNumtotal)
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
+        # 存在チェック
         if len(listTr) > 1:
+            # 順位
             index = len(listTr) - 1
             # タイトルを除く >> listTr[1:]
             for trstr in listTr[1:]:
@@ -51,93 +49,42 @@ class Page(object):
                     else:
                         lista.append(txt)
                 index -= 1
+                # 当たり毎に情報を取得する
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
-                self.dao.insertData("piainfo", my_dict)
                 listb.append(my_dict)
+        # 降順
+        piaDataInfoDetailOfDay = sorted(listb, key=lambda x: int(x["lineno"]))
+        for piaLineInfo in piaDataInfoDetailOfDay:
+            self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
-        self.getPiaDataInfoTotal(shopid, taino, target_date, listb, lastStartNum)
-        
-    def getPiaDataInfoTotal(self, shopid, taino, target_date, listb, lastStartNum):
-        
-        listd = []
-        # ボーナス計数
-        bonuscount = 0
-        # ラインNo
-        lineno = 0
-        big16r = 0
-        middle8r = 0
-        small4r = 0
-        normal = True
-        # 該当ラインのスータトのtotal
-        startTotal = int(lastStartNum)
-        # ループ
-        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-        for index, dataLine in enumerate(sorted(listb, key=lambda x: int(x["lineno"]))):
-            # 回転数計数
-            ballin = int(dataLine["ballin"])
-            startTotal += ballin
-            # R数チェック
-            ballout = int(dataLine["ballout"])
-            if ballout > 1800 :
-                big16r += 1
-            elif ballout < 800:
-                small4r += 1
+        piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNum)
+        for totalLineInfo in piaDataInfoTotal:
+            self.dao.insertData("piainfototal", totalLineInfo)
+     
+    #ライン毎に当たり情報を集計する
+    def getPiaDataInfoTotal(self, shopid, taino, target_date, sortedListOfDataInfo, lastStartNum):
+        listNormal = []
+        # 全ての通常のラインデータを洗い出す
+        for datainfo in sortedListOfDataInfo:
+            if str(datainfo["bonuskind"]) == "通常":
+                listNormal.append(datainfo) 
+        liste = []
+        # ライン数を取得する
+        rowCount = len(listNormal)
+        # ライン毎にグループで分ける
+        for i in list(range(rowCount)):
+            startIndex = int(listNormal[i]["lineno"]) - 1
+            if i != rowCount - 1:
+                if i + 1 < rowCount:
+                    endIndex = int(listNormal[i + 1]["lineno"]) - 1
+                    
+                groupDataInfo = sortedListOfDataInfo[startIndex:endIndex]
             else:
-                middle8r += 1
-            # ライン毎にボーナス計数
-            bonuscount += 1
-
-            # 通常また確変判定する
-            if str(dataLine["bonuskind"]) == "通常":
-                if not index == 0:
-                    if normal:
-                        startTotal += (ballin + 100)
-                        dicForDataLine.update({"ballin": str(ballin + 100)})
-                    else:
-                        startTotal += (ballin + 130)
-                        dicForDataLine.update({"ballin": str(ballin + 130)})
-                
-                normal = True
-                # ライン計数
-                lineno += 1
-                # 初当たりじゃない場合
-                if not index == 0:
-                    # 行を追加
-                    listd.append(dicForDataLine)
-#                     startTotal = ballin
-                    # ボーナス数初期化
-                    bonuscount = 1
-                    # R数チェック
-                    big16r = 0
-                    middle8r = 0
-                    small4r = 0
-                    if ballout > 1800:
-                        big16r = 1
-                    elif ballout < 800:
-                        small4r = 1
-                    else:
-                        middle8r = 1
-                    dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-                
-                else:
-                    dicForDataLine.update({"ballin": str(ballin)})   
-            else:
-                normal = False
-            dicForDataLine.update({"starttotal": str(startTotal)})
-            dicForDataLine.update({"bonus": str(bonuscount)})
-            dicForDataLine.update({"big16r": str(big16r)})
-            dicForDataLine.update({"middle8r": str(middle8r)})
-            dicForDataLine.update({"small4r": str(small4r)})
-            dicForDataLine.update({"lineno": str(lineno)})
-        # 最後に行を追加
-        dicForDataLine.update({"starttotal": str(startTotal)})
-        dicForDataLine.update({"bonus": str(bonuscount)})
-        dicForDataLine.update({"big16r": str(big16r)})
-        dicForDataLine.update({"middle8r": str(middle8r)})
-        dicForDataLine.update({"small4r": str(small4r)})
-        dicForDataLine.update({"lineno": str(lineno)})
-        listd.append(dicForDataLine)
-        
+                groupDataInfo = sortedListOfDataInfo[startIndex:]
+            liste.append(groupDataInfo)
+        # ラウンド数集計関数を呼び出す
+        piaDataInfoTotal = self.checkRounds(liste)
+        # 前日の最終のスタート数をリストに設定する
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
         dicForDataLine.update({"ballin": str(lastStartNum)})
         dicForDataLine.update({"starttotal": str(lastStartNum)})
@@ -146,10 +93,64 @@ class Page(object):
         dicForDataLine.update({"big16r": str(0)})
         dicForDataLine.update({"middle8r": str(0)})
         dicForDataLine.update({"small4r": str(0)})
-        listd.append(dicForDataLine)
-        for totalLineInfo in listd:
-            self.dao.insertData("piainfototal", totalLineInfo)        
-        
+        piaDataInfoTotal.append(dicForDataLine)
+        return piaDataInfoTotal
+         
+    def checkRounds(self, liste):
+        listTotal =[]
+        listTotalTmp =[]
+        newList = copy.deepcopy(liste)
+        for indexOfGroup,group in enumerate(newList):
+            big16r = 0
+            middle8r = 1
+            small4r = 0
+            bonuscount = 1
+            firstBonus = group[:1][0]
+            if len(group) >= 2 :
+                otherBonusList = group[1:]
+            else:
+                otherBonusList = []
+            
+            startTotal = int(firstBonus["ballin"])
+            ballin = int(firstBonus["ballin"])
+            if indexOfGroup != 0:
+                beforBonus = liste[indexOfGroup - 1][-1:][0]
+                bonuskind = beforBonus["bonuskind"]
+                if bonuskind == "通常":
+                    ballin += 100
+                    startTotal += 100
+                else:
+                    ballin += 130
+                    startTotal += 130
+            for dataLine in otherBonusList:
+                # ライン毎にボーナス計数
+                bonuscount += 1
+                # 回転数計数
+                ballinOther = int(dataLine["ballin"])
+                startTotal += ballinOther
+                # R数チェック
+                ballout = int(dataLine["ballout"])
+                if ballout > 1800 :
+                    big16r += 1
+                elif ballout < 800:
+                    small4r += 1
+                else:
+                    middle8r += 1
+            firstBonus.update({"lineno":str(indexOfGroup + 1)})
+            firstBonus.update({"ballin":str(ballin)})
+            firstBonus.update({"bonus": str(bonuscount)})
+            firstBonus.update({"big16r": str(big16r)})
+            firstBonus.update({"middle8r": str(middle8r)})
+            firstBonus.update({"small4r": str(small4r)})
+            firstBonus.update({"starttotal": str(startTotal)})
+            listTotalTmp.append(firstBonus)
+        # 不要の項目を削除する
+        for i in listTotalTmp:
+            for key in ["bonuskind","timeline","ballout"]:
+                del i[key]   
+            listTotal.append(i)
+        return listTotal        
+    
     def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
             "shop" : str(shopid),
@@ -161,7 +162,7 @@ class Page(object):
             "bonuskind":str(lstas[3]),
             "ballout":str(lstas[2])}
         return mydic
-
+# 
 # pagea = Page()
 # with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
-#     pagea.getDataOfOneDay(3, 2, 1, f.read()) 
+#     pagea.getDataOfOneDay(100100, 112, '2017-2-10', f.read()) 
