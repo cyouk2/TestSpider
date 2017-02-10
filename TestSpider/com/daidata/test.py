@@ -1,15 +1,10 @@
-import asyncio
 import os
-import queue as Queue
-from threading import Thread
 import re
 import time
 import pagefordata
 import urllib.request
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
-
-THREADS = 3
 
 def getCurrentTime():
     return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
@@ -19,7 +14,6 @@ def adddays(day):
     return (now + timedelta(days=day)).strftime('%Y-%m-%d')
 
 # Internet アクセス共通関数
-
 def requestPage(url):
     try:
         request = urllib.request.Request(url)
@@ -38,11 +32,10 @@ def download(shopid, taino, target_date):
     url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
     print(getCurrentTime(), "getTaiList:", url)
     page.getDataOfOneDay(shopid, taino, target_date, requestPage(url))
-    
-@asyncio.coroutine              
+               
 def getShopInfoByURL(areaid, pageid):
     url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
-    page =  yield from requestPage(url)
+    page = requestPage(url)
     getShopIdList(page)
 
 #アリア別で店舗情報リスト取得      
@@ -90,10 +83,8 @@ if os.path.exists(filename):
         for pageid in lista[1:]:
             AreaInfos.append((areaName,pageid))
     f.close()
-loop = asyncio.get_event_loop()
-tasks = [ getShopInfoByURL(areaName,pageid) for areaName,pageid in AreaInfos]
-loop.run_until_complete(asyncio.wait(tasks))
-loop.close()
+for areaName,pageid in AreaInfos:
+    getShopInfoByURL(areaName,pageid)
 
             
 
