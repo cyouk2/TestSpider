@@ -52,7 +52,7 @@ def getShopIdList(page):
 def getUnitList(shopid):
     tainoList = [] 
     url = "http://daidata.goraggio.com/" + str(shopid) + "/list/?type=2&f=1"
-    print(getCurrentTime(),"getUnitList:",url)
+#     print(getCurrentTime(),"getUnitList:",url)
     page = requestPage(url)  
     if page:
         history = BeautifulSoup(str(page)).find_all(href=re.compile("%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C.*?FWN"))
@@ -63,7 +63,7 @@ def getUnitList(shopid):
 def getTaiList(shopid, lists):
     for tailist in lists:
         url = "http://daidata.goraggio.com" + tailist
-        print(getCurrentTime(),"getTaiList:",url)
+#         print(getCurrentTime(),"getTaiList:",url)
         pageOfTaiList = requestPage(url)
         history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
         for tainoi in history:

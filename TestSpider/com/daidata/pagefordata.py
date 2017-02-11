@@ -21,16 +21,16 @@ class Page(object):
     
     def getDataOfOneDay(self, shopid, taino, target_date, page):
         listb = []
-        # 累計スタートの履歴
-        overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
+        overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
-        # 前日最終スタート
-        lastStartNum = str(0)
-        # 存在チェック
+        lastStartNumToday = 0
+       
         if len(tdOfoverviewTable) > 3:
-            lastStartNum = BeautifulSoup(str(tdOfoverviewTable[3])).text
-            if not lastStartNum:
-                lastStartNum = str(0)
+            lastStartNumToday =int( BeautifulSoup(str(tdOfoverviewTable[2])).text)
+            if not lastStartNumToday:
+                lastStartNumToday = 0
+        print("lastStartNumToday:", lastStartNumToday)
+    
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
@@ -52,17 +52,26 @@ class Page(object):
                 # 当たり毎に情報を取得する
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
                 listb.append(my_dict)
+        piaDataInfoDetailOfDay =sorted(listb,key=lambda x:int(x["lineno"]))
+        if len(piaDataInfoDetailOfDay) > 0:
+            bonuskindtmp = piaDataInfoDetailOfDay[-1:][0]["bonuskind"]
+            if bonuskindtmp == "通常":
+                lastStartNumToday += 100
+            else:
+                lastStartNumToday += 130
+        
         # 降順
-        piaDataInfoDetailOfDay = sorted(listb, key=lambda x: int(x["lineno"]))
+        #piaDataInfoDetailOfDay = sorted(listb, key=lambda x: int(x["lineno"]))
         for piaLineInfo in piaDataInfoDetailOfDay:
             self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
-        piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNum)
+        piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNumToday)
         for totalLineInfo in piaDataInfoTotal:
+            #print(totalLineInfo)
             self.dao.insertData("piainfototal", totalLineInfo)
      
     #ライン毎に当たり情報を集計する
-    def getPiaDataInfoTotal(self, shopid, taino, target_date, sortedListOfDataInfo, lastStartNum):
+    def getPiaDataInfoTotal(self, shopid, taino, target_date, sortedListOfDataInfo, lastStartNumToday):
         listNormal = []
         # 全ての通常のラインデータを洗い出す
         for datainfo in sortedListOfDataInfo:
@@ -83,13 +92,13 @@ class Page(object):
                 groupDataInfo = sortedListOfDataInfo[startIndex:]
             liste.append(groupDataInfo)
         # ラウンド数集計関数を呼び出す
-        piaDataInfoTotal = self.checkRounds(liste)
+        piaDataInfoTotal,total = self.checkRounds(liste)
         # 前日の最終のスタート数をリストに設定する
         dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-        dicForDataLine.update({"ballin": str(lastStartNum)})
-        dicForDataLine.update({"starttotal": str(lastStartNum)})
+        dicForDataLine.update({"ballin": str(lastStartNumToday)})
+        dicForDataLine.update({"starttotal": str(lastStartNumToday+ total)})
         dicForDataLine.update({"bonus": str(0)})
-        dicForDataLine.update({"lineno": str(0)})
+        dicForDataLine.update({"lineno": str(rowCount + 1)})
         dicForDataLine.update({"big16r": str(0)})
         dicForDataLine.update({"middle8r": str(0)})
         dicForDataLine.update({"small4r": str(0)})
@@ -99,6 +108,7 @@ class Page(object):
     def checkRounds(self, liste):
         listTotal =[]
         listTotalTmp =[]
+        startTotal =0
         newList = copy.deepcopy(liste)
         for indexOfGroup,group in enumerate(newList):
             big16r = 0
@@ -149,7 +159,7 @@ class Page(object):
             for key in ["bonuskind","timeline","ballout"]:
                 del i[key]   
             listTotal.append(i)
-        return listTotal        
+        return (listTotal ,startTotal)      
     
     def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
