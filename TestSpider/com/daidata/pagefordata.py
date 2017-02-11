@@ -52,6 +52,7 @@ class Page(object):
                 # 当たり毎に情報を取得する
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
                 listb.append(my_dict)
+        
         piaDataInfoDetailOfDay =sorted(listb,key=lambda x:int(x["lineno"]))
         if len(piaDataInfoDetailOfDay) > 0:
             bonuskindtmp = piaDataInfoDetailOfDay[-1:][0]["bonuskind"]
@@ -59,9 +60,7 @@ class Page(object):
                 lastStartNumToday += 100
             else:
                 lastStartNumToday += 130
-        
         # 降順
-        #piaDataInfoDetailOfDay = sorted(listb, key=lambda x: int(x["lineno"]))
         for piaLineInfo in piaDataInfoDetailOfDay:
             self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
@@ -172,6 +171,7 @@ class Page(object):
             "bonuskind":str(lstas[3]),
             "ballout":str(lstas[2])}
         return mydic
+
 # 
 # pagea = Page()
 # with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
