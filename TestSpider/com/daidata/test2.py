@@ -1,4 +1,4 @@
-import asyncio
+# import asyncio
 import mysqlfordata
 import time
 import pagefordata
