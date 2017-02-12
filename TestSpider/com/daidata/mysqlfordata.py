@@ -47,8 +47,6 @@ class Mysql(object):
                 
     def close(self):
         self.db.close()
-mysqlobj = Mysql()
-mysqlobj.getTainoInfoData()
 
 
 
