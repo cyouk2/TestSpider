@@ -62,11 +62,12 @@ class Page(object):
                 lastStartNumToday += 130
         # 降順
         for piaLineInfo in piaDataInfoDetailOfDay:
+#             print(piaLineInfo)
             self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
         piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNumToday)
         for totalLineInfo in piaDataInfoTotal:
-            #print(totalLineInfo)
+#             print(totalLineInfo)
             self.dao.insertData("piainfototal", totalLineInfo)
      
     #ライン毎に当たり情報を集計する

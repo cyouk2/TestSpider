@@ -36,10 +36,18 @@ class Mysql(object):
             print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
         except Exception as err:
             print(self.getCurrentTime(), "ERR:", err)
-            
+    def getTainoInfoData(self):
+        lists = []
+        sql= "SELECT shop, taino FROM shopinfo"
+        self.cur.execute(sql)
+        for (shop, taino) in self.cur:
+            lists.append((shop,taino))
+        return lists
+                
     def close(self):
         self.db.close()
-
+mysqlobj = Mysql()
+mysqlobj.getTainoInfoData()
 
 
 
