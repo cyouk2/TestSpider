@@ -3,9 +3,11 @@ import os
 import queue as Queue
 from threading import Thread
 import re
+import mysqlfordata
 import time
 import pagefordata
 import urllib.request
+import urllib.parse
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
@@ -44,6 +46,7 @@ class DownloadWorker(Thread):
             self.queue.task_done()
     
     def download(self, shopid, taino, target_date):
+        
         url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
         print(self.getCurrentTime(), "getTaiList:", url)
         self.page.getDataOfOneDay(shopid, taino, target_date, self.requestPage(url))
@@ -54,6 +57,8 @@ class CrawlerScheduler(object):
         self.sites = sites
         self.queue = Queue.Queue()
         self.scheduling()
+#         self.dao = mysqlfordata.Mysql()
+        
     def adddays(self, day):
         now = datetime.now()
         return (now + timedelta(days=day)).strftime('%Y-%m-%d')
@@ -123,18 +128,19 @@ class CrawlerScheduler(object):
             history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
             for tainoi in history:
                 taino = BeautifulSoup(str(tainoi)).text
+#                 self.dao.insertData("shopinfo", {"shop":str(shopid),"taino":str(taino)})   
                 for day in list(range(-7, 0)):
                     # 日付取得
                     target_date = self.adddays(day)
                     self.queue.put((shopid, taino, target_date))
 if __name__ == "__main__":
     AreaInfos = []
-    filename = "area.txt"
+    filename = "areainfo.txt"
     if os.path.exists(filename):
         f = open(filename, mode='r', encoding="utf-8", errors='ignore')
         for row in f:
             lista = row.rstrip().lstrip().split(",")
-            areaName = lista[0]
+            areaName = urllib.parse.quote_plus(lista[0], encoding="utf-8")
             for pageid in lista[1:]:
                 AreaInfos.append((areaName,pageid))
         f.close()

@@ -1,8 +1,9 @@
 import os
 import re
 import time
-import pagefordata
+import mysqlfordata
 import urllib.request
+import urllib.parse
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
@@ -27,12 +28,10 @@ def requestPage(url):
         if hasattr(e, "reason"):
             print(getCurrentTime(), "GetShopInfoByURL...ERRREASON:", e.reason)
             return None
-def download(shopid, taino, target_date):
-    page = pagefordata.Page()
-    url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
-    print(getCurrentTime(), "getTaiList:", url)
-    page.getDataOfOneDay(shopid, taino, target_date, requestPage(url))
-               
+def downloadShopInfo(shopid, taino):
+    dao = mysqlfordata.Mysql()
+    dao.insertData("shopinfo", {"shop":str(shopid),"taino":str(taino)})   
+         
 def getShopInfoByURL(areaid, pageid):
     url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
     page = requestPage(url)
@@ -52,7 +51,7 @@ def getShopIdList(page):
 def getUnitList(shopid):
     tainoList = [] 
     url = "http://daidata.goraggio.com/" + str(shopid) + "/list/?type=2&f=1"
-#     print(getCurrentTime(),"getUnitList:",url)
+    print(getCurrentTime(),"getUnitList:",url)
     page = requestPage(url)  
     if page:
         history = BeautifulSoup(str(page)).find_all(href=re.compile("%E5%8C%97%E6%96%97%E7%84%A1%E5%8F%8C.*?FWN"))
@@ -63,23 +62,20 @@ def getUnitList(shopid):
 def getTaiList(shopid, lists):
     for tailist in lists:
         url = "http://daidata.goraggio.com" + tailist
-#         print(getCurrentTime(),"getTaiList:",url)
+        print(getCurrentTime(),"getTaiList:",url)
         pageOfTaiList = requestPage(url)
         history = BeautifulSoup(str(pageOfTaiList)).find_all(href=re.compile("unit=.*?"))
         for tainoi in history:
             taino = BeautifulSoup(str(tainoi)).text
-            for day in list(range(-7, 0)):
-                # 日付取得
-                target_date = adddays(day)
-                download(shopid, taino, target_date)
-
+            downloadShopInfo(shopid, taino)
+            
 AreaInfos = []
-filename = "area.txt"
+filename = "areainfo.txt"
 if os.path.exists(filename):
     f = open(filename, mode='r', encoding="utf-8", errors='ignore')
     for row in f:
         lista = row.rstrip().lstrip().split(",")
-        areaName = lista[0]
+        areaName = urllib.parse.quote_plus(lista[0], encoding="utf-8")
         for pageid in lista[1:]:
             AreaInfos.append((areaName,pageid))
     f.close()

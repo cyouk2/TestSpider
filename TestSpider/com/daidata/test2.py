@@ -37,7 +37,7 @@ mysqlobj = mysqlfordata.Mysql()
 listb = mysqlobj.getTainoInfoData()
 listDataInfo = []
 for shop, taino in listb:
-    for day in list(range(-1, 0)):
+    for day in list(range(-7, -6)):
         # 日付取得
         target_date = adddays(day)
         download(shop, taino, target_date)
