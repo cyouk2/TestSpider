@@ -36,7 +36,19 @@ class Mysql(object):
             print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
         except Exception as err:
             print(self.getCurrentTime(), "ERR:", err)
-
+            
+    def DeleteShopInfo(self):
+        sql = "DELETE FROM shopinfo"
+        try:
+            self.cur.execute(sql)
+            self.db.commit()
+            print(self.getCurrentTime(), "Database commit....SQL:", sql)
+        except mysql.connector.Error as err:
+            self.db.rollback()
+            print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
+        except Exception as err:
+            print(self.getCurrentTime(), "ERR:", err)
+            
     def getTainoInfoData(self):
         lists = []
         sql= "SELECT shop, taino FROM shopinfo"

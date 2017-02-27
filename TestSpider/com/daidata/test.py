@@ -72,6 +72,8 @@ def getTaiList(shopid, lists):
 AreaInfos = []
 filename = "areainfo.txt"
 if os.path.exists(filename):
+    dao = mysqlfordata.Mysql()
+    dao.DeleteShopInfo() 
     f = open(filename, mode='r', encoding="utf-8", errors='ignore')
     for row in f:
         lista = row.rstrip().lstrip().split(",")
