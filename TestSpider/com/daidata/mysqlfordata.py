@@ -23,47 +23,37 @@ class Mysql(object):
         return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
 
     def insertData(self, table, my_dict):
-        
         cols = ','.join(my_dict.keys())
         values = "','".join(my_dict.values())
         sql = "INSERT INTO %s (%s) VALUES (%s)" % (table, cols, "'" + values + "'")
-        try:
-            self.cur.execute(sql)
-            self.db.commit()
-            print(self.getCurrentTime(), "Database commit....SQL:", sql)
-        except mysql.connector.Error as err:
-            self.db.rollback()
-            print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
-        except Exception as err:
-            print(self.getCurrentTime(), "ERR:", err)
+        self.CommonRequest(sql)
             
     def DeleteShopInfo(self):
-        sql = "DELETE FROM shopinfo"
-        try:
-            self.cur.execute(sql)
-            self.db.commit()
-            print(self.getCurrentTime(), "Database commit....SQL:", sql)
-        except mysql.connector.Error as err:
-            self.db.rollback()
-            print(self.getCurrentTime(), "Database ROLLBACK....",  "ERR:", err, "...SQL:", sql)
-        except Exception as err:
-            print(self.getCurrentTime(), "ERR:", err)
+        self.CommonRequest("DELETE FROM shopinfo")
             
     def getTainoInfoData(self):
         lists = []
-        sql= "SELECT shop, taino FROM shopinfo"
-        self.cur.execute(sql)
-        for (shop, taino) in self.cur:
-            lists.append((shop,taino))
+        try:
+            self.cur.execute("SELECT shop, taino FROM shopinfo")
+            for (shop, taino) in self.cur:
+                lists.append((shop,taino))
+        except Exception as err:
+            print(self.getCurrentTime(), "ERR:", err)
         return lists
-                
+    
+    def CommonRequest(self,sql):
+        try:
+            self.cur.execute(sql)
+            self.db.commit()
+            print(self.getCurrentTime(), "Database commit....SQL:", sql)
+        except mysql.connector.Error as err:
+            self.db.rollback()
+        except Exception as err:
+            print(self.getCurrentTime(), "ERR:", err)
+
     def close(self):
         self.db.close()
-
-
-
-
-
+        
 
 
 
