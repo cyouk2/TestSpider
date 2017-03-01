@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import time
-import re
 import mysqlfordata
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
@@ -16,14 +15,6 @@ class Page(object):
         now = datetime.now()
         return (now + timedelta(days=day)).strftime('%Y%m%d')
     
-    #画面の確率を解析する
-    def getRate(self, value):
-        try:
-            strRateTotalForList = re.split(r'[/]', value)
-            return strRateTotalForList[-1]
-        except Exception:
-            return '0'
-        
     # 数値に変換する
     def stringToint(self, value):    
         try:
@@ -38,34 +29,13 @@ class Page(object):
     def getDataOfOneDay(self, shopid, taino, target_date, page):
         # 本日の大当たり履歴詳細
         listb = []
-        #当たり数
-        bonusTotal = 0
-        #確変当たり数
-        bonusST =0
-        #確率
-        rateTotal = 0
         # 最終スタート数
         lastStartNumToday = 0
-        #累計スタート
-        startTotalToday = 0
-        
-        # overviewTableのデータ
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
         if len(tdOfoverviewTable) > 3:
-            bonusTotal = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[0])).text)
-            bonusST = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[1])).text)
             lastStartNumToday = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[2])).text)
-            rateTotal = self.getRate(BeautifulSoup(str(tdOfoverviewTable[3])).text)
-
-        # overviewTable3のデータ       
-        overviewTable3 = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
-        tdOfoverviewTable3 = BeautifulSoup(str(overviewTable3)).find_all("td")
-        if len(tdOfoverviewTable3) > 2:
-            startTotalToday = self.stringToint(BeautifulSoup(str(tdOfoverviewTable3[1])).text)
-            
-
-        
+        print(lastStartNumToday)    
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
@@ -95,15 +65,6 @@ class Page(object):
                 lastStartNumToday += 100
             else:
                 lastStartNumToday += 130
-        
-        #DBに保存する
-        dicpiainfotoday ={"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-        dicpiainfotoday.update({"bonus": str(bonusTotal)})
-        dicpiainfotoday.update({"bonusforst": str(bonusST)})
-        dicpiainfotoday.update({"rate": str(rateTotal)})
-        dicpiainfotoday.update({"laststart": str(lastStartNumToday)})
-        dicpiainfotoday.update({"allstart": str(startTotalToday)})
-        self.dao.insertData("piainfotoday", dicpiainfotoday)    
         
         # 降順
         for piaLineInfo in piaDataInfoDetailOfDay:
@@ -138,6 +99,15 @@ class Page(object):
             liste.append(groupDataInfo)
         # ラウンド数集計関数を呼び出す
         piaDataInfoTotal = self.checkRounds(liste)
+        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+        dicForDataLine.update({"ballin": str(lastStartNumToday)})
+        dicForDataLine.update({"starttotal": str(lastStartNumToday)})
+        dicForDataLine.update({"bonus": str(0)})
+        dicForDataLine.update({"lineno": str(rowCount + 1)})
+        dicForDataLine.update({"big16r": str(0)})
+        dicForDataLine.update({"middle8r": str(0)})
+        dicForDataLine.update({"small4r": str(0)})
+        piaDataInfoTotal.append(dicForDataLine)
         # 前日の最終のスタート数をリストに設定する
         return piaDataInfoTotal
          
@@ -211,5 +181,5 @@ class Page(object):
 
 # 
 # pagea = Page()
-# with open("11.html", mode='r', encoding="utf-8", errors='ignore') as f:
+# with open("11", mode='r', encoding="utf-8", errors='ignore') as f:
 #     pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
