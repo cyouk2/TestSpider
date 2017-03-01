@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+import re
 import mysqlfordata
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
@@ -14,23 +15,57 @@ class Page(object):
     def adddays(self, day):
         now = datetime.now()
         return (now + timedelta(days=day)).strftime('%Y%m%d')
-
+    
+    #画面の確率を解析する
+    def getRate(self, value):
+        try:
+            strRateTotalForList = re.split(r'[/]', value)
+            return strRateTotalForList[-1]
+        except Exception:
+            return '0'
+        
+    # 数値に変換する
+    def stringToint(self, value):    
+        try:
+            return int(value)
+        except Exception:
+            return 0
+    
     # getCurrentTime
     def getCurrentTime(self):
         return time.strftime('[%Y-%m-%d %H:%M:%S]', time.localtime(time.time()))
     
     def getDataOfOneDay(self, shopid, taino, target_date, page):
+        # 本日の大当たり履歴詳細
         listb = []
+        #当たり数
+        bonusTotal = 0
+        #確変当たり数
+        bonusST =0
+        #確率
+        rateTotal = 0
+        # 最終スタート数
+        lastStartNumToday = 0
+        #累計スタート
+        startTotalToday = 0
+        
+        # overviewTableのデータ
         overviewTable = BeautifulSoup(str(page)).select('table[class="overviewTable"]')
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
-        lastStartNumToday = 0
-       
         if len(tdOfoverviewTable) > 3:
-            lastStartNumToday =int( BeautifulSoup(str(tdOfoverviewTable[2])).text)
-            if not lastStartNumToday:
-                lastStartNumToday = 0
-        print("lastStartNumToday:", lastStartNumToday)
-    
+            bonusTotal = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[0])).text)
+            bonusST = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[1])).text)
+            lastStartNumToday = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[2])).text)
+            rateTotal = self.getRate(BeautifulSoup(str(tdOfoverviewTable[3])).text)
+
+        # overviewTable3のデータ       
+        overviewTable3 = BeautifulSoup(str(page)).select('table[class="overviewTable3"]')
+        tdOfoverviewTable3 = BeautifulSoup(str(overviewTable3)).find_all("td")
+        if len(tdOfoverviewTable3) > 2:
+            startTotalToday = self.stringToint(BeautifulSoup(str(tdOfoverviewTable3[1])).text)
+            
+
+        
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
@@ -60,15 +95,25 @@ class Page(object):
                 lastStartNumToday += 100
             else:
                 lastStartNumToday += 130
+        
+        #DBに保存する
+        dicpiainfotoday ={"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+        dicpiainfotoday.update({"bonus": str(bonusTotal)})
+        dicpiainfotoday.update({"bonusforst": str(bonusST)})
+        dicpiainfotoday.update({"rate": str(rateTotal)})
+        dicpiainfotoday.update({"laststart": str(lastStartNumToday)})
+        dicpiainfotoday.update({"allstart": str(startTotalToday)})
+        self.dao.insertData("piainfotoday", dicpiainfotoday)    
+        
         # 降順
         for piaLineInfo in piaDataInfoDetailOfDay:
-#             print(piaLineInfo)
-            self.dao.insertData("piainfo", piaLineInfo)      
+            print(piaLineInfo)
+#             self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
         piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNumToday)
         for totalLineInfo in piaDataInfoTotal:
-#             print(totalLineInfo)
-            self.dao.insertData("piainfototal", totalLineInfo)
+            print(totalLineInfo)
+#             self.dao.insertData("piainfototal", totalLineInfo)
      
     #ライン毎に当たり情報を集計する
     def getPiaDataInfoTotal(self, shopid, taino, target_date, sortedListOfDataInfo, lastStartNumToday):
@@ -92,17 +137,8 @@ class Page(object):
                 groupDataInfo = sortedListOfDataInfo[startIndex:]
             liste.append(groupDataInfo)
         # ラウンド数集計関数を呼び出す
-        piaDataInfoTotal,total = self.checkRounds(liste)
+        piaDataInfoTotal = self.checkRounds(liste)
         # 前日の最終のスタート数をリストに設定する
-        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
-        dicForDataLine.update({"ballin": str(lastStartNumToday)})
-        dicForDataLine.update({"starttotal": str(lastStartNumToday+ total)})
-        dicForDataLine.update({"bonus": str(0)})
-        dicForDataLine.update({"lineno": str(rowCount + 1)})
-        dicForDataLine.update({"big16r": str(0)})
-        dicForDataLine.update({"middle8r": str(0)})
-        dicForDataLine.update({"small4r": str(0)})
-        piaDataInfoTotal.append(dicForDataLine)
         return piaDataInfoTotal
          
     def checkRounds(self, liste):
@@ -159,7 +195,7 @@ class Page(object):
             for key in ["bonuskind","timeline","ballout"]:
                 del i[key]   
             listTotal.append(i)
-        return (listTotal ,startTotal)      
+        return listTotal
     
     def getDicData(self, shopid, taino, target_date, lstas):
         mydic = {
@@ -175,5 +211,5 @@ class Page(object):
 
 # 
 # pagea = Page()
-# with open("111.html", mode='r', encoding="utf-8", errors='ignore') as f:
-#     pagea.getDataOfOneDay(100100, 112, '2017-2-10', f.read()) 
+# with open("11.html", mode='r', encoding="utf-8", errors='ignore') as f:
+#     pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
