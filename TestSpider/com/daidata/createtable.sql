@@ -1,11 +1,4 @@
-CREATE TABLE `piainfotoday` (
-  `shop` varchar(45) NOT NULL,
-  `playdate` varchar(45) NOT NULL,
-  `taino` varchar(45) NOT NULL,
-  `bonus` varchar(45) DEFAULT '0',
-  `bonusforst` varchar(45) DEFAULT '0',
-  `laststart` varchar(45) DEFAULT '0',
-  `rate` varchar(45) DEFAULT '0',
-  `allstart` varchar(45) DEFAULT '0',
-  PRIMARY KEY (`shop`,`playdate`,`taino`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_days` AS 
+SELECT shop,playdate,taino,sum(bonus) as b,sum(ballin) as bin, TRUNCATE(IFNULL(sum(ballin)/sum(bonus),0),1) as rate
+FROM beidou.piainfototal
+group by shop,playdate,taino
