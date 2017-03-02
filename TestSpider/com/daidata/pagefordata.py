@@ -35,7 +35,7 @@ class Page(object):
         tdOfoverviewTable = BeautifulSoup(str(overviewTable)).find_all("td")
         if len(tdOfoverviewTable) > 3:
             lastStartNumToday = self.stringToint(BeautifulSoup(str(tdOfoverviewTable[2])).text)
-        print(lastStartNumToday)    
+        #print(lastStartNumToday)    
         # 本日の大当たり履歴詳細
         numericValueTable = BeautifulSoup(str(page)).select('table[class="numericValueTable"]')
         listTr = BeautifulSoup(str(numericValueTable)).find_all("tr")
@@ -47,12 +47,16 @@ class Page(object):
             for trstr in listTr[1:]:
                 lista = []
                 listTr = BeautifulSoup(str(trstr)).find_all("td")
-                for td in listTr:
-                    txt = BeautifulSoup(str(td)).text
-                    if txt == "-":
-                        lista.append(index)
-                    else:
-                        lista.append(txt)
+
+                lista.append(index)
+                ballin = BeautifulSoup(str(listTr[1])).text
+                lista.append(ballin)
+                ballout = BeautifulSoup(str(listTr[2])).text
+                lista.append(ballout)
+                bonuskind = BeautifulSoup(str(listTr[3])).text
+                lista.append(bonuskind)
+                timeline = BeautifulSoup(str(listTr[4])).text
+                lista.append(timeline)
                 index -= 1
                 # 当たり毎に情報を取得する
                 my_dict = self.getDicData(shopid, taino, target_date, lista)
@@ -68,12 +72,12 @@ class Page(object):
         
         # 降順
         for piaLineInfo in piaDataInfoDetailOfDay:
-#             print(piaLineInfo)
+            #print(piaLineInfo)
             self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
         piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, target_date, piaDataInfoDetailOfDay, lastStartNumToday)
         for totalLineInfo in piaDataInfoTotal:
-#             print(totalLineInfo)
+            #print(totalLineInfo)
             self.dao.insertData("piainfototal", totalLineInfo)
      
     #ライン毎に当たり情報を集計する
@@ -88,11 +92,12 @@ class Page(object):
         rowCount = len(listNormal)
         # ライン毎にグループで分ける
         for i in list(range(rowCount)):
+            #print(i)
             startIndex = int(listNormal[i]["lineno"]) - 1
             if i != rowCount - 1:
                 if i + 1 < rowCount:
                     endIndex = int(listNormal[i + 1]["lineno"]) - 1
-                    
+            
                 groupDataInfo = sortedListOfDataInfo[startIndex:endIndex]
             else:
                 groupDataInfo = sortedListOfDataInfo[startIndex:]
@@ -115,15 +120,17 @@ class Page(object):
         listTotal =[]
         listTotalTmp =[]
         startTotal =0
-        newList = copy.deepcopy(liste)
-        for indexOfGroup,group in enumerate(newList):
+        copiedNewList = copy.deepcopy(liste)
+        for (indexOfGroup, groupsData) in enumerate(copiedNewList):
+            
             big16r = 0
             middle8r = 1
             small4r = 0
             bonuscount = 1
-            firstBonus = group[:1][0]
-            if len(group) >= 2 :
-                otherBonusList = group[1:]
+            
+            firstBonus = groupsData[:1][0]
+            if len(groupsData) >= 2 :
+                otherBonusList = groupsData[1:]
             else:
                 otherBonusList = []
             
@@ -180,6 +187,6 @@ class Page(object):
         return mydic
 
 # 
-# pagea = Page()
-# with open("11", mode='r', encoding="utf-8", errors='ignore') as f:
-#     pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
+#pagea = Page()
+#with open("11.html", mode='r', encoding="utf-8", errors='ignore') as f:
+    #pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
