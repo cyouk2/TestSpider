@@ -28,7 +28,7 @@ def requestPage(url):
 
 def download(shopid, taino, target_date):
     page = pagefordata.Page()
-    url = "http://daidata.goraggio.com/" + shopid + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
+    url = "http://daidata.goraggio.com/" + str(shopid) + "/detail/?unit=" + str(taino) + "&target_date=" + target_date
     print(getCurrentTime(), "getTaiList:", url)
     pagetxt = requestPage(url)
     page.getDataOfOneDay(shopid, taino, target_date, pagetxt)

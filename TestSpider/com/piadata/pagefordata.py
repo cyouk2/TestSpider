@@ -55,10 +55,10 @@ class Page(object):
                 intbonuskind = 2
                 if strbonuskind == '通常':
                     intbonuskind = 1
-                timeline =  BeautifulSoup(str(listTr[4])).text
-                inttimeline = self.stringToint(timeline.replace(':', ''))
+#                 timeline =  BeautifulSoup(str(listTr[4])).text
+#                 inttimeline = self.stringToint(timeline.replace(':', ''))
                 # 当たり毎に情報を取得する
-                my_dict = self.getDicData(shopid, taino, intplaydate, index, ballin, ballout, intbonuskind, inttimeline)
+                my_dict = self.getDicData(shopid, taino, intplaydate, index, ballin, ballout, intbonuskind)
                 listb.append(my_dict)
                 index -= 1
         # ソート
@@ -67,7 +67,7 @@ class Page(object):
         if len(piaDataInfoDetailOfDay) > 0:
             bonuskindtmp = piaDataInfoDetailOfDay[-1:][0]["bonuskind"]
             # 前回のボーナスが通常の場合
-            if bonuskindtmp == 1:
+            if int(bonuskindtmp) == 1:
                 lastStartNumToday += 100
             else:
                 #確変の場合
@@ -75,20 +75,20 @@ class Page(object):
         
         # 降順
         for piaLineInfo in piaDataInfoDetailOfDay:
-            print(piaLineInfo)
-#             self.dao.insertData("piainfo", piaLineInfo)      
+#             print(piaLineInfo)
+            self.dao.insertData("piainfo", piaLineInfo)      
         # 集計関数へ渡す
         piaDataInfoTotal = self.getPiaDataInfoTotal(shopid, taino, intplaydate, piaDataInfoDetailOfDay, lastStartNumToday)
         for totalLineInfo in piaDataInfoTotal:
-            print(totalLineInfo)
-#             self.dao.insertData("piainfototal", totalLineInfo)
+#             print(totalLineInfo)
+            self.dao.insertData("piainfototal", totalLineInfo)
      
     #ライン毎に当たり情報を集計する
     def getPiaDataInfoTotal(self, shopid, taino, target_date, sortedListOfDataInfo, lastStartNumToday):
         listNormal = []
         # 全ての通常のラインデータを洗い出す
         for datainfo in sortedListOfDataInfo:
-            if datainfo["bonuskind"] == 1:
+            if int(datainfo["bonuskind"]) == 1:
                 listNormal.append(datainfo) 
         liste = []
         # ライン数を取得する
@@ -107,14 +107,14 @@ class Page(object):
             liste.append(groupDataInfo)
         # ラウンド数集計関数を呼び出す
         piaDataInfoTotal = self.checkRounds(liste)
-        dicForDataLine = {"shop" : shopid, "taino" : taino, "playdate" : target_date}
-        dicForDataLine.update({"ballin": lastStartNumToday})
-        dicForDataLine.update({"starttotal": lastStartNumToday})
-        dicForDataLine.update({"bonus": 0})
-        dicForDataLine.update({"lineno": rowCount + 1})
-        dicForDataLine.update({"big16r": 0})
-        dicForDataLine.update({"middle8r": 0})
-        dicForDataLine.update({"small4r": 0})
+        dicForDataLine = {"shop" : str(shopid), "taino" : str(taino), "playdate" : str(target_date)}
+        dicForDataLine.update({"ballin": str(lastStartNumToday)})
+        dicForDataLine.update({"starttotal": str(lastStartNumToday)})
+        dicForDataLine.update({"bonus": str(0)})
+        dicForDataLine.update({"lineno": str(rowCount + 1)})
+        dicForDataLine.update({"big16r": str(0)})
+        dicForDataLine.update({"middle8r": str(0)})
+        dicForDataLine.update({"small4r": str(0)})
         piaDataInfoTotal.append(dicForDataLine)
         # 前日の最終のスタート数をリストに設定する
         return piaDataInfoTotal
@@ -141,7 +141,7 @@ class Page(object):
             ballin = int(firstBonus["ballin"])
             if indexOfGroup != 0:
                 beforBonus = liste[indexOfGroup - 1][-1:][0]
-                bonuskind = beforBonus["bonuskind"]
+                bonuskind = int(beforBonus["bonuskind"])
                 if bonuskind == 1:
                     ballin += 100
                     startTotal += 100
@@ -162,34 +162,33 @@ class Page(object):
                     small4r += 1
                 else:
                     middle8r += 1
-            firstBonus.update({"lineno":indexOfGroup + 1})
-            firstBonus.update({"ballin":ballin})
-            firstBonus.update({"bonus": bonuscount})
-            firstBonus.update({"big16r": big16r})
-            firstBonus.update({"middle8r": middle8r})
-            firstBonus.update({"small4r": small4r})
-            firstBonus.update({"starttotal": startTotal})
+            firstBonus.update({"lineno":str(indexOfGroup + 1)})
+            firstBonus.update({"ballin":str(ballin)})
+            firstBonus.update({"bonus": str(bonuscount)})
+            firstBonus.update({"big16r": str(big16r)})
+            firstBonus.update({"middle8r": str(middle8r)})
+            firstBonus.update({"small4r": str(small4r)})
+            firstBonus.update({"starttotal": str(startTotal)})
             listTotalTmp.append(firstBonus)
         # 不要の項目を削除する
         for i in listTotalTmp:
-            for key in ["bonuskind","timeline","ballout"]:
+            for key in ["bonuskind","ballout"]:
                 del i[key]   
             listTotal.append(i)
         return listTotal
     
-    def getDicData(self, shopid, taino, target_date, lineno, ballin, ballout, bonuskind, timeline):
+    def getDicData(self, shopid, taino, target_date, lineno, ballin, ballout, bonuskind):
         mydic = {
-            "shop" : shopid,
-            "taino" : taino,
-            "playdate" : target_date,
-            "lineno" : lineno,
-            "timeline" : timeline,
-            "ballin" :ballin,
-            "bonuskind":bonuskind,
-            "ballout":ballout}
+            "shop" : str(shopid),
+            "taino" : str(taino),
+            "playdate" : str(target_date),
+            "lineno" : str(lineno),
+            "ballin" :str(ballin),
+            "bonuskind":str(bonuskind),
+            "ballout":str(ballout)}
         return mydic
 
 # 
-pagea = Page()
-with open("11.html", mode='r', encoding="utf-8", errors='ignore') as f:
-    pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
+# pagea = Page()
+# with open("11.html", mode='r', encoding="utf-8", errors='ignore') as f:
+#     pagea.getDataOfOneDay(999999, 112, '2017-2-10', f.read()) 
