@@ -30,7 +30,7 @@ def requestPage(url):
             return None
 def downloadShopInfo(shopid, taino):
     dao = mysqlfordata.Mysql()
-    dao.insertData("shopinfo", {"shop":shopid,"taino":taino})   
+    dao.insertData("shopinfo", {"shop":str(shopid),"taino":str(taino)})   
          
 def getShopInfoByURL(areaid, pageid):
     url = "http://daidata.goraggio.com/?pref=" + areaid + "&page=" + str(pageid)
